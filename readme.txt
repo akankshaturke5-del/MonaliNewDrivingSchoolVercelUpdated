@@ -1,5 +1,6 @@
 Github - AkankshaTurke5
 Vercel - AkankskhaTurke5 email
+Database if vercel storage only
 Replit - AkankshaTurke5
 To make it compatible and host on vercel : 
 I want to put the website on vercel, Please do changes in zip file for vercel compatible to read it from the Github
@@ -7,7 +8,7 @@ Backup code : https://drive.google.com/drive/folders/1LfnQ-2gk2DmUiLH0CDpxJYAoFm
 
 Paste chatgpt response to replit.
 
-Prompt to put CHatpt :
+Prompt to put Chatpt :
 
 I want to build and design and develop a website for driving school in melbourne australia. I will use replit to design and develop this website. The detail of the business is given below. I want you to ask replit to us amazing colour scheme, Good font (Sutaible for Driving school business), Good effects animation, etc
 
