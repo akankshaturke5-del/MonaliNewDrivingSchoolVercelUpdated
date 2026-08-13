@@ -56159,7 +56159,7 @@ app.use((0, import_cors.default)());
 app.use(import_express7.default.json());
 app.use(import_express7.default.urlencoded({ extended: true }));
 app.use("/api", routes_default);
-var publicDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "public");
+var publicDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "public");
 app.get("/api/gallery", (_req, res) => {
   const galleryDir = path.join(publicDir, "Gallery");
   if (!fs.existsSync(galleryDir)) {
