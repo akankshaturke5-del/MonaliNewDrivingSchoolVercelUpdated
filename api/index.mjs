@@ -56160,6 +56160,22 @@ app.use(import_express7.default.json());
 app.use(import_express7.default.urlencoded({ extended: true }));
 app.use("/api", routes_default);
 var publicDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "public");
+app.get("/api/gallery", (_req, res) => {
+  const galleryDir = path.join(publicDir, "Gallery");
+  if (!fs.existsSync(galleryDir)) {
+    res.json([]);
+    return;
+  }
+  const files = fs.readdirSync(galleryDir, { withFileTypes: true })
+    .filter((entry) => entry.isFile())
+    .map((entry) => entry.name)
+    .filter((name) => /\.(png|jpe?g|webp|gif|avif|svg|heic|heif|bmp)$/i.test(name))
+    .sort((a, b) => a.localeCompare(b));
+  res.json(files.map((name) => ({
+    src: `/Gallery/${name}`,
+    alt: name.replace(/\.[^.]+$/, "")
+  })));
+});
 if (fs.existsSync(publicDir)) {
   app.use(import_express7.default.static(publicDir));
   app.get("*", (_req, res) => {

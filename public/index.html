@@ -65,5 +65,128 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      (function () {
+        function renderGallery() {
+          const root = document.getElementById('root');
+          const about = document.getElementById('about');
+          if (!root) return;
+
+          const section = document.createElement('section');
+          section.id = 'gallery';
+          section.className = 'gallery-section';
+          section.innerHTML = `
+            <div class="gallery-wrap">
+              <div class="gallery-header">
+                <h3>Our Learning Experience</h3>
+                <p>Our learning environment and student journey.</p>
+              </div>
+              <div class="gallery-grid" id="gallery-grid"></div>
+            </div>
+          `;
+
+          const target = about || root;
+          if (about) {
+            about.insertAdjacentElement('afterend', section);
+          } else {
+            root.appendChild(section);
+          }
+
+          fetch('/api/gallery')
+            .then((response) => response.ok ? response.json() : [])
+            .then((images) => {
+              const grid = section.querySelector('#gallery-grid');
+              if (!grid || !images.length) {
+                if (grid) grid.innerHTML = '<div class="gallery-empty">No gallery images found.</div>';
+                return;
+              }
+
+              grid.innerHTML = images.map((image) => `
+                <div class="gallery-item">
+                  <img src="${image.src}" alt="${image.alt}" loading="lazy" />
+                </div>
+              `).join('');
+            })
+            .catch(() => {
+              const grid = section.querySelector('#gallery-grid');
+              if (grid) {
+                grid.innerHTML = '<div class="gallery-empty">Gallery is loading.</div>';
+              }
+            });
+        }
+
+        window.addEventListener('load', function () {
+          setTimeout(renderGallery, 150);
+        });
+      })();
+    </script>
+    <style>
+      .gallery-section {
+        padding: 64px 20px 48px;
+        background: #f8fafc;
+      }
+      .gallery-wrap {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .gallery-header {
+        text-align: center;
+        margin-bottom: 28px;
+      }
+      .gallery-header h3 {
+        margin: 0 0 10px;
+        font-size: clamp(2rem, 3vw, 2.8rem);
+        color: #0f172a;
+        font-weight: 800;
+      }
+      .gallery-header p {
+        margin: 0;
+        color: #475569;
+        font-size: 1rem;
+      }
+      .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+      }
+      .gallery-item {
+        overflow: hidden;
+        border-radius: 18px;
+        background: #fff;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+      }
+      .gallery-item img {
+        display: block;
+        width: 100%;
+        height: 260px;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+      }
+      .gallery-item:hover img {
+        transform: scale(1.04);
+      }
+      .gallery-empty {
+        padding: 24px;
+        text-align: center;
+        color: #475569;
+        background: #fff;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+      }
+      @media (max-width: 960px) {
+        .gallery-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (max-width: 560px) {
+        .gallery-grid {
+          grid-template-columns: 1fr;
+        }
+        .gallery-item img {
+          height: 220px;
+        }
+      }
+    </style>
   </body>
 </html>
