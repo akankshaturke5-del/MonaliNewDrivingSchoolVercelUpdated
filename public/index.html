@@ -67,57 +67,169 @@
     <div id="root"></div>
     <script>
       (function () {
-        function renderGallery() {
-          const root = document.getElementById('root');
-          const about = document.getElementById('about');
-          if (!root) return;
+        // Add more images here: put the file in public/Gallery/, then add { src, alt }.
+        const GALLERY_IMAGES = [
+          { src: '/Gallery/about-instructor.png', alt: 'About instructor' },
+          { src: '/Gallery/hero-bg.png', alt: 'Learning experience' },
+          { src: '/Gallery/opengraph.jpg', alt: 'Monali Driving School' },
+        ];
 
-          const section = document.createElement('section');
-          section.id = 'gallery';
-          section.className = 'gallery-section';
-          section.innerHTML = `
-            <div class="gallery-wrap">
-              <div class="gallery-header">
-                <h3>Our Learning Experience</h3>
-                <p>Our learning environment and student journey.</p>
-              </div>
-              <div class="gallery-grid" id="gallery-grid"></div>
+        const section = document.createElement('section');
+        section.id = 'gallery';
+        section.className = 'gallery-section';
+        section.innerHTML = `
+          <div class="gallery-wrap">
+            <div class="gallery-header">
+              <h3>Our Learning Experience</h3>
+              <p>Our learning environment and student journey.</p>
             </div>
-          `;
+            <div class="gallery-grid" id="gallery-grid"></div>
+          </div>
+        `;
 
-          const target = about || root;
-          if (about) {
-            about.insertAdjacentElement('afterend', section);
+        const grid = section.querySelector('#gallery-grid');
+        if (grid) {
+          if (!GALLERY_IMAGES.length) {
+            grid.innerHTML = '<div class="gallery-empty">No gallery images found.</div>';
           } else {
-            root.appendChild(section);
+            grid.innerHTML = GALLERY_IMAGES.map((image) => `
+              <div class="gallery-item">
+                <img src="${image.src}" alt="${image.alt}" loading="lazy" />
+              </div>
+            `).join('');
           }
-
-          fetch('/api/gallery')
-            .then((response) => response.ok ? response.json() : [])
-            .then((images) => {
-              const grid = section.querySelector('#gallery-grid');
-              if (!grid || !images.length) {
-                if (grid) grid.innerHTML = '<div class="gallery-empty">No gallery images found.</div>';
-                return;
-              }
-
-              grid.innerHTML = images.map((image) => `
-                <div class="gallery-item">
-                  <img src="${image.src}" alt="${image.alt}" loading="lazy" />
-                </div>
-              `).join('');
-            })
-            .catch(() => {
-              const grid = section.querySelector('#gallery-grid');
-              if (grid) {
-                grid.innerHTML = '<div class="gallery-empty">Gallery is loading.</div>';
-              }
-            });
         }
 
-        window.addEventListener('load', function () {
-          setTimeout(renderGallery, 150);
-        });
+        function placeGallery() {
+          const about = document.getElementById('about');
+          const root = document.getElementById('root');
+          if (about) {
+            if (about.nextElementSibling !== section) {
+              about.insertAdjacentElement('afterend', section);
+            }
+            return;
+          }
+          if (root && section.parentElement !== document.body) {
+            root.insertAdjacentElement('afterend', section);
+          }
+        }
+
+        function scrollToGallery(event) {
+          if (event) event.preventDefault();
+          const target = document.getElementById('gallery');
+          if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function insertAfterReviews(container, node, matchText) {
+          const reviews = Array.from(container.children).find((el) =>
+            (el.textContent || '').trim() === matchText
+          );
+          if (reviews) {
+            reviews.insertAdjacentElement('afterend', node);
+          } else {
+            container.appendChild(node);
+          }
+        }
+
+        function injectGalleryQuickLink() {
+          if (document.getElementById('gallery-quick-link')) return;
+
+          const headings = Array.from(document.querySelectorAll('h4'));
+          const quickLinksHeading = headings.find((el) => el.textContent.trim() === 'Quick Links');
+          if (!quickLinksHeading) return;
+
+          const list = quickLinksHeading.parentElement && quickLinksHeading.parentElement.querySelector('ul');
+          if (!list) return;
+
+          const item = document.createElement('li');
+          item.id = 'gallery-quick-link';
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'text-slate-400 hover:text-accent transition-colors text-sm';
+          button.textContent = 'Gallery';
+          button.addEventListener('click', scrollToGallery);
+          item.appendChild(button);
+          insertAfterReviews(list, item, 'Reviews');
+        }
+
+        function injectGalleryHeaderLinks() {
+          // Desktop header nav (<ul> with Home/About/Services/Reviews/Contact)
+          if (!document.getElementById('gallery-header-link')) {
+            const desktopNav = Array.from(document.querySelectorAll('header ul, nav ul')).find((ul) => {
+              const labels = Array.from(ul.querySelectorAll('button, a')).map((el) => el.textContent.trim());
+              return labels.includes('About') && labels.includes('Services') && labels.includes('Reviews');
+            });
+            if (desktopNav) {
+              const scrolled = window.scrollY > 20;
+              const item = document.createElement('li');
+              item.id = 'gallery-header-link';
+              const button = document.createElement('button');
+              button.type = 'button';
+              button.className = scrolled
+                ? 'text-sm font-medium hover:text-accent transition-colors text-slate-600'
+                : 'text-sm font-medium hover:text-accent transition-colors text-slate-200 hover:text-white';
+              button.textContent = 'Gallery';
+              button.addEventListener('click', scrollToGallery);
+              item.appendChild(button);
+              insertAfterReviews(desktopNav, item, 'Reviews');
+            }
+          } else {
+            // Keep desktop link colors in sync with sticky header state
+            const headerBtn = document.querySelector('#gallery-header-link button');
+            if (headerBtn) {
+              const scrolled = window.scrollY > 20;
+              headerBtn.className = scrolled
+                ? 'text-sm font-medium hover:text-accent transition-colors text-slate-600'
+                : 'text-sm font-medium hover:text-accent transition-colors text-slate-200 hover:text-white';
+            }
+          }
+
+          // Mobile menu buttons (full-width primary style)
+          if (!document.getElementById('gallery-mobile-link')) {
+            const mobileButtons = Array.from(document.querySelectorAll('button')).filter((btn) =>
+              btn.className.includes('text-primary') &&
+              btn.className.includes('w-full') &&
+              ['Home', 'About', 'Services', 'Reviews', 'Contact'].includes(btn.textContent.trim())
+            );
+            if (mobileButtons.length >= 4) {
+              const reviewsBtn = mobileButtons.find((btn) => btn.textContent.trim() === 'Reviews');
+              const button = document.createElement('button');
+              button.id = 'gallery-mobile-link';
+              button.type = 'button';
+              button.className = 'text-primary font-medium w-full py-2 hover:bg-slate-50';
+              button.textContent = 'Gallery';
+              button.addEventListener('click', scrollToGallery);
+              if (reviewsBtn && reviewsBtn.parentElement) {
+                reviewsBtn.insertAdjacentElement('afterend', button);
+              } else {
+                mobileButtons[mobileButtons.length - 1].insertAdjacentElement('afterend', button);
+              }
+            }
+          }
+        }
+
+        function sync() {
+          placeGallery();
+          injectGalleryQuickLink();
+          injectGalleryHeaderLinks();
+        }
+
+        function start() {
+          sync();
+          const root = document.getElementById('root');
+          if (root) {
+            const observer = new MutationObserver(sync);
+            observer.observe(root, { childList: true, subtree: true });
+          }
+        }
+
+        if (document.readyState === 'complete') {
+          setTimeout(start, 150);
+        } else {
+          window.addEventListener('load', function () {
+            setTimeout(start, 150);
+          });
+        }
       })();
     </script>
     <style>
